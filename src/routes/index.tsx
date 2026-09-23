@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route, BrowserRouter } from 'react-router-dom';
+import { Route, Routes as Switch, BrowserRouter } from 'react-router-dom';
 
 import Home from '../pages/Home';
 import CreatePoint from '../pages/CreatePoint';
@@ -7,8 +7,10 @@ import CreatePoint from '../pages/CreatePoint';
 const Routes = () => {
     return (
         <BrowserRouter>
-            <Route path="/" component={Home} exact/>
-            <Route path="/cadastro" component={CreatePoint} />
+            <Switch>
+                <Route path="/" element={<Home />} />
+                <Route path="/cadastro" element={<CreatePoint />} />
+            </Switch>
         </BrowserRouter>
     );
 }

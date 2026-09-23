@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Logo from '../../assets/logo.svg';
-import { IconType } from 'react-icons/lib/cjs';
+import { IconType } from 'react-icons';
 
 interface HeaderProps {
     returnLink?: { icon: IconType, route: string, text: string}
