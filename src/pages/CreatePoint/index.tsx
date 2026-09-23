@@ -1,13 +1,27 @@
 import React, { useState, useEffect, FormEvent } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Header from '../../components/Header';
 import { FiArrowLeft } from 'react-icons/fi';
 import './styles.css';
-import { Map, TileLayer, Marker } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import api from '../../services/api';
 import NoImg from '../../assets/noimg.png';
-import { LeafletMouseEvent } from 'leaflet';
+import L from 'leaflet';
+import iconUrl from 'leaflet/dist/images/marker-icon.png';
+import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
+import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
+
+// Leaflet can't detect its default icon path once bundled, so pass the images explicitly
+const markerIcon = L.icon({ ...L.Icon.Default.prototype.options, iconUrl, iconRetinaUrl, shadowUrl });
+
+// MapContainer only reads `center` on mount; follow position changes and clicks here
+const MapEvents = ({ position, onClick }: { position: [number, number], onClick: (latlng: L.LatLng) => void }) => {
+    const map = useMap();
+    useEffect(() => { map.setView(position); }, [map, position]);
+    useMapEvents({ click: e => onClick(e.latlng) });
+    return null;
+};
 
 interface Item {
     id: number,
@@ -37,7 +51,7 @@ const CreatePoint = () => {
     const [ufs, setUfs] = useState<string[]>([]);
     const [cities, setCities] = useState<string[]>([]);
 
-    const history = useHistory();
+    const navigate = useNavigate();
 
     useEffect(() => {
         api.get('items')
@@ -69,8 +83,8 @@ const CreatePoint = () => {
         });
     }, []);
 
-    const handleMapClick = (e: LeafletMouseEvent) => {
-        setSelectedPosition([e.latlng.lat, e.latlng.lng])
+    const handleMapClick = (latlng: L.LatLng) => {
+        setSelectedPosition([latlng.lat, latlng.lng])
     }
 
     const handleSelectedItem = (id: number) => {
@@ -99,7 +113,7 @@ const CreatePoint = () => {
 
         await api.post('points', data);
 
-        history.push('/');
+        navigate('/');
     }
 
     return (
@@ -154,13 +168,14 @@ const CreatePoint = () => {
                     </legend>
 
                     
-                    <Map center={selectedPosition} zoom={18} onClick={handleMapClick}>
+                    <MapContainer center={selectedPosition} zoom={18}>
+                        <MapEvents position={selectedPosition} onClick={handleMapClick} />
                         <TileLayer
                             attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         />
-                        <Marker position={selectedPosition} />
-                    </Map>
+                        <Marker position={selectedPosition} icon={markerIcon} />
+                    </MapContainer>
 
                     <div className="field-group">
                         <div className="field">
